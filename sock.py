@@ -3,15 +3,23 @@ import sys
 import thread
 
 trds={}
-def cback(s,cli,addr):
+
+def broad(data):
+	for cli in trds.keys():
+		trds[cli][1].send(data)
+
+def cback(cli,addr):
 	bfr=""
 	while True:
-		data,addr=s.recv(1024)
-		if data:
-			bfr += data
-			print bfr
-		else:
-			break
+		data=cli.recv(2048)
+		if data.strip() == "disconnect":
+			cli.send("dack")
+			cli.close()
+		elif data:
+			print "message recieved from client"
+			print data
+			broad(data)
+			cli.send("ack")
 
 try:
 	s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -33,7 +41,7 @@ while True:
 		try:
 			c,addr=s.accept()
 			if addr not in trds.keys():
-				trds['addr']=thread.start_new_thread(cback,(s,c,addr))
+				trds[addr]=(thread.start_new_thread(cback,(c,addr)),c)
 			print "Got connection From", addr
 			c.send("Thank you for connecting")
 		except KeyboardInterrupt:

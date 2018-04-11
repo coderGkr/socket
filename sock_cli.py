@@ -1,6 +1,4 @@
 import socket
-import sys
-import thread
 
 
 host="blr01end1.bec.broadcom.net"
@@ -13,15 +11,13 @@ while True:
 		a=raw_input("Myname $")
 		s.send(str(a))
 		while s.recv(1024) != "ack":
-			print "waiting for ACK"
-		print "ack recieved"
+			print "recived ack"
 	except KeyboardInterrupt:
-		print "recived keyboardInterrupt"
+		print "recived keyboardInterrupt, exiting"
 		break
 data=s.recv(1024)
 s.close()
 s.close()
-print "recieved", repr(data)
 
 # while True:
 # 		c,addr=s.accept()
