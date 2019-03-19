@@ -1,87 +1,54 @@
+# Import socket module
 import socket
+import time
+import threading
+
+def listen(conn):
+	while True:
+		try:
+			data = conn.recv(1024)
+			print "\nserver :"+data
+			time.sleep(0.1)
+			print "Client :",
+			if data == "":
+				print "no more data"
+				break
+		except socket.timeout:
+			print "Timeout"
+			break
 
 
-host="blr01end1.bec.broadcom.net"
-port=12345
+def send(conn):
+	while True:
+		message = raw_input("\nClient : ")
+		conn.sendall(message)
+		time.sleep(0.1)
+
+
+# Create a socket object
 s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-s.connect((host,port))
-s.send("Hello world")
-while True:
-	try:
-		a=raw_input("Myname $")
-		s.send(str(a))
-		while s.recv(1024) != "ack":
-			print "recived ack"
-	except KeyboardInterrupt:
-		print "recived keyboardInterrupt, exiting"
-		break
-data=s.recv(1024)
-s.close()
-s.close()
 
-# while True:
-# 		c,addr=s.accept()
-# 		if addr not in trds.keys():
-# 			trds['addr']=thread.start_new_thread(cback,(c,addr))
-# 		print "Got connection From", addr
-# 		c.send("Thank you for connecting")
-# 		c.close()
+# Define the port on which you want to connect 
+port = 12345
 
-# First of all we import socket which is necessary.
-# Then we made a socket object and reserved a port on our pc.
-# After that we binded our server to the specified port. Passing an empty string means that the server can listen to incoming connections from other computers as well. If we would have passed 127.0.0.1 then it would have listened to only those calls made within the local computer.
-# After that we put the server into listen mode.5 here means that 5 connections are kept waiting if the server is busy and if a 6th socket trys to connect then the connection is refused.
-# At last we make a while loop and start to accept all incoming connections and close those connections after a thank you message to all connected sockets.
+# connect to the server on local computer 
+s.connect(('127.0.0.1', port))
+s.setblocking(0)
+s.settimeout(60)
+a=raw_input("enter here")
+print a
+
+tx = threading.Thread(target=send,args=(s,))
+rx = threading.Thread(target=listen,args=(s,))
+tx.start()
+rx.start()
 
 
 
+a=raw_input("hre")
 
-# client.py:
+rx.join()
+tx.join()
 
-# import socket
-# import time
-
-# client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-# client_socket.connect(("localhost", 8220))
-
-# for index in xrange(5):
-#     data = "GET\nSONAR%d\n\n" % index
-#     print 'send to server: ' + data
-#     client_socket.send(data)
-#     while client_socket.recv(2048) != "ack":
-#         print "waiting for ack"
-#     print "ack received!"
-
-# #send disconnect message                                                                                                                           
-# dmsg = "disconnect"
-# print "Disconnecting"
-# client_socket.send(dmsg)
-
-# client_socket.close()
-# server.py:
-
-# import socket
-# import sys
-
-# host = 'localhost'
-# port = 8220
-# address = (host, port)
-
-# server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-# server_socket.bind(address)
-# server_socket.listen(5)
-
-# print "Listening for client . . ."
-# conn, address = server_socket.accept()
-# print "Connected to client at ", address
-# #pick a large output buffer size because i dont necessarily know how big the incoming packet is                                                    
-# while True:
-#     output = conn.recv(2048);
-#     if output.strip() == "disconnect":
-#         conn.close()
-#         sys.exit("Received disconnect message.  Shutting down.")
-#         conn.send("dack")
-#     elif output:
-#         print "Message received from client:"
-#         print output
-#         conn.send("ack")
+# close the connection
+s.close() 
